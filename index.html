@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dice Challenge Game</title>
+
+    <style> 
+        body {
+            margin: 0;
+            padding: 0;
+            text-align: center;
+            font-family: Arial, sans-serif;
+            background: linear-gradient(135deg, #ffe4f7, #ffc1f0);
+            min-height: 100vh;
+        }
+
+        h1 {
+            color: #d10a7a;
+            margin-top: 30px;
+            text-shadow: 1px 1px #fff;
+        }
+
+        .card {
+            background: #ffffffcc;
+            padding: 20px;
+            margin: 20px auto;
+            max-width: 400px;
+            border-radius: 18px;
+            box-shadow: 0 0 15px rgba(255, 0, 140, 0.3);
+        }
+
+        input[type="text"] {
+            padding: 10px;
+            width: 70%;
+            font-size: 16px;
+            border-radius: 8px;
+            border: 1px solid #ff4da6;
+            outline: none;
+        }
+
+        button {
+            padding: 10px 22px;
+            font-size: 16px;
+            border-radius: 10px;
+            border: none;
+            cursor: pointer;
+            margin: 8px 5px 0 5px;
+            background: #ff4da6;
+            color: white;
+            box-shadow: 0 0 10px rgba(255, 77, 166, 0.4);
+        }
+
+        button:hover:not(:disabled) {
+            background: #e60084;
+        }
+
+        button:disabled {
+            background: #999;
+            cursor: not-allowed;
+        }
+
+        #gameScreen { display: none; }
+
+        .dice {
+            width: 110px;
+            height: 110px;
+            background: #ff67b3;
+            margin: 20px auto;
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 4px;
+            border-radius: 16px;
+            padding: 10px;
+            box-shadow: 0 0 15px rgba(255, 0, 145, 0.5);
+            transition: transform 0.3s;
+        }
+
+        .dot {
+            width: 20px;
+            height: 20px;
+            background: white;
+            border-radius: 50%;
+            opacity: 0;
+        }
+
+        .show {
+            opacity: 1;
+        }
+
+        #message {
+            margin-top: 12px;
+            font-size: 16px;
+        }
+
+        footer {
+            margin-top: 10px;
+            font-size: 13px;
+            color: #555;
+        }
+    </style>
+</head>
+<body>
+
+    <div id="homeScreen" class="card">
+        <h1>Dice Challenge Game 🎲</h1>
+        <p>Enter your name to challenge the game:</p>
+        <input type="text" id="playerName" placeholder="Type your name">
+        <br>
+        <button onclick="startGame()">Start Game</button>
+    </div>
+
+    <div id="gameScreen" class="card">
+        <h1 id="title">Dice Challenge</h1>
+        <p>First to reach <b>50</b> points wins.</p>
+
+        <div class="dice" id="dice">
+            <div class="dot"></div><div class="dot"></div><div class="dot"></div>
+            <div class="dot"></div><div class="dot"></div><div class="dot"></div>
+            <div class="dot"></div><div class="dot"></div><div class="dot"></div>
+        </div>
+
+        <p><span id="pName">Your</span> Score: <span id="playerScore">0</span></p>
+        <p>Computer Score: <span id="computerScore">0</span></p>
+
+        <p id="message"></p>
+
+        <button id="rollBtn" onclick="playerTurn()">Roll Dice</button>
+        <button onclick="resetGame()">Reset Game</button>
+    </div>
+
+    <footer>Made by Sonali ❤️ MCA</footer>
+
+<script>
+    const homeScreen = document.getElementById("homeScreen");
+    const gameScreen = document.getElementById("gameScreen");
+    const playerNameInput = document.getElementById("playerName");
+
+    const title = document.getElementById("title");
+    const message = document.getElementById("message");
+
+    const dice = document.getElementById("dice");
+    const dots = dice.querySelectorAll(".dot");
+
+    const rollButton = document.getElementById("rollBtn");
+    const playerScoreText = document.getElementById("playerScore");
+    const computerScoreText = document.getElementById("computerScore");
+    const pNameText = document.getElementById("pName");
+
+    let playerName = "Player";
+    let playerScore = 0;
+    let computerScore = 0;
+    const targetScore = 50;
+
+    function startGame() {
+        playerName = playerNameInput.value.trim() || "Player";
+        pNameText.textContent = playerName;
+        title.textContent = "Dice Challenge - " + playerName + " vs Computer";
+        message.textContent = `${playerName}, your turn!`;
+
+        homeScreen.style.display = "none";
+        gameScreen.style.display = "block";
+    }
+
+    const patterns = {
+        1: [4],
+        2: [0, 8],
+        3: [0, 4, 8],
+        4: [0, 2, 6, 8],
+        5: [0, 2, 4, 6, 8],
+        6: [0, 2, 3, 5, 6, 8]
+    };
+
+    function rollDice() {
+        dice.style.transform = "rotate(360deg)";
+        setTimeout(() => dice.style.transform = "rotate(0deg)", 300);
+
+        dots.forEach(dot => dot.classList.remove("show"));
+        let num = Math.floor(Math.random() * 6) + 1;
+        patterns[num].forEach(i => dots[i].classList.add("show"));
+        return num;
+    }
+
+    function checkWinner() {
+        if (playerScore >= targetScore) {
+            message.textContent = `🎉 ${playerName} wins the game!`;
+            rollButton.disabled = true;
+            return true;
+        }
+        if (computerScore >= targetScore) {
+            message.textContent = "🤖 Computer wins the game!";
+            rollButton.disabled = true;
+            return true;
+        }
+        return false;
+    }
+
+    function playerTurn() {
+        rollButton.disabled = true;
+        let num = rollDice();
+        playerScore += num;
+        playerScoreText.textContent = playerScore;
+        message.textContent = `${playerName} rolled ${num}. Computer's turn...`;
+
+        if (!checkWinner()) setTimeout(computerTurn, 1000);
+    }
+
+    function computerTurn() {
+        let num = rollDice();
+        computerScore += num;
+        computerScoreText.textContent = computerScore;
+
+        if (!checkWinner()) {
+            message.textContent = `Computer rolled ${num}. ${playerName}, your turn!`;
+            rollButton.disabled = false;
+        }
+    }
+
+    function resetGame() {
+        playerScore = 0;
+        computerScore = 0;
+        playerScoreText.textContent = 0;
+        computerScoreText.textContent = 0;
+        rollButton.disabled = false;
+        message.textContent = `${playerName}, your turn again!`;
+        dots.forEach(dot => dot.classList.remove("show"));
+    }
+</script>
+
+</body>
+</html>
